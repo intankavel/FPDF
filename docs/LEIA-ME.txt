@@ -1,0 +1,57 @@
+FPDF 0.8.1 — Ferramentas para PDF — Portátil completo
+
+COMO COMEÇAR
+1. Extraia todo o ZIP para uma pasta, por exemplo Documentos\FPDF.
+2. Abra FPDF.exe. Mantenha os arquivos da pasta juntos.
+3. Selecione a ferramenta desejada e adicione os arquivos.
+4. Salve o resultado com um novo nome ou em uma nova pasta.
+
+.NET, PDFtk Server e Ghostscript AGPL estão incluídos no pacote de Windows
+de 64 bits. Não é necessário instalar esses componentes nem o Visual Studio.
+O FPDF usa primeiro os mecanismos da sua própria pasta. Mantenha a pasta tools
+junto ao executável. Não execute o programa diretamente de dentro do ZIP.
+Se um componente faltar, extraia novamente o ZIP completo. O botão Verificar
+componentes apresenta a situação dos mecanismos e links oficiais alternativos.
+
+PARA ORGANIZAR PÁGINAS
+Escolha Visualizar e organizar páginas, adicione um PDF e clique em Abrir páginas.
+Selecione uma miniatura para ver a página ampliada; use o controle de zoom.
+Arraste uma página sobre outra ou use os botões para mudar a ordem.
+Excluir página afeta apenas o resultado. Desfazer recupera a última alteração.
+Restaurar original recupera todas as páginas e a ordem original.
+Clique em Salvar novo PDF e escolha um nome que ainda não exista.
+As primeiras 20 miniaturas são carregadas automaticamente; carregue mais conforme
+necessário. Esta versão permite organizar até 5.000 páginas por documento.
+
+ASSINATURAS DIGITAIS
+Verificar assinaturas identifica campos de assinatura no PDF. A organização
+visual e as operações de edição também fazem essa inspeção. Campos vazios e
+preenchidos são sinalizados. Não há validação de certificados, integridade
+criptográfica ou validade jurídica. Ausência de campos detectados não comprova
+ausência de assinaturas. Edições podem invalidar assinaturas digitais.
+
+PRIVACIDADE E LIMITES
+O processamento dos PDFs acontece localmente. As páginas pré-visualizadas são
+imagens temporárias removidas ao fechar a janela normalmente. Se o programa
+for encerrado à força, cópias podem permanecer na pasta temporária do Windows.
+O resultado preserva o original e arquivos existentes. Na organização, páginas
+excluídas não vão para o novo PDF. Revise o resultado antes de protocolar.
+
+O pacote inclui todos os mecanismos PDF usados pelo programa. O executável
+não possui assinatura de código de editor: o Windows pode apresentar um aviso.
+FPDF é um projeto independente, ainda sem homologação institucional da Ufes.
+
+CÓDIGO ABERTO
+O código-fonte correspondente está na pasta codigo-fonte, junto com instruções
+de compilação. O FPDF é disponibilizado sob GNU Affero General Public License
+versão 3 (AGPL-3.0-only), sem garantia, conforme LICENSE.
+Avisos e licenças dos componentes ficam em licencas. PDFtk Server e Ghostscript
+são programas separados, com licenças próprias; não são relicenciados pelo FPDF.
+Seus arquivos de fontes e das bibliotecas usadas ficam em fontes-terceiros.
+Instruções de reconstrução e identificação dos arquivos estão em
+BUILD-THIRD-PARTY.md e fontes-terceiros/manifest.json. Preserve fontes e avisos
+ao redistribuir o pacote completo.
+
+Sites oficiais:
+https://www.pdflabs.com/tools/pdftk-server/
+https://ghostscript.com/releases/gsdnld.html

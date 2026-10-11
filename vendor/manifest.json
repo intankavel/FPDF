@@ -1,0 +1,76 @@
+{
+  "sources": [
+    {
+      "sha256": "118F6A25FD3ACAAFB58824DCE6F97CDC07E56050E666B90E4C4EF426EA37B8C1",
+      "name": "pdftk-2.02-src.zip",
+      "bytes": 2239008,
+      "url": "https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/pdftk-2.02-src.zip"
+    },
+    {
+      "sha256": "C20492BC8EBB96C87FA2E52A0926E1CDA8CDE95D66145E018AC713FED5DA38CF",
+      "name": "ghostscript-10.08.0.tar.xz",
+      "bytes": 69197208,
+      "url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/ghostscript-10.08.0.tar.xz"
+    },
+    {
+      "sha256": "813C067D2FB7CD1FE925771B4CE39E26833E2CB7BC89040DEDE5F8E0F0778190",
+      "name": "ghostscript-SHA512SUMS",
+      "bytes": 1696,
+      "url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/SHA512SUMS"
+    },
+    {
+      "sha256": "938AA1010B04E362DFADE5AC13FC24142EE60D4E7B153D5FA9EE5C2A48E854D8",
+      "name": "gcc-core-3.4.5-20060117-1-src.tar.gz",
+      "bytes": 17693587,
+      "url": "https://sourceforge.net/projects/mingw/files/MinGW/Base/gcc/Version3/Previous%20Release_%20gcc-3.4.5-20060117-1/gcc-core-3.4.5-20060117-1-src.tar.gz/download"
+    },
+    {
+      "sha256": "190B0D64153BEFC2A2DB8B75C058FAA221A32B8395547E22D70D359AC12B7521",
+      "name": "gcc-java-3.4.5-20060117-1-src.tar.gz",
+      "bytes": 6303267,
+      "url": "https://sourceforge.net/projects/mingw/files/MinGW/Base/gcc/Version3/Previous%20Release_%20gcc-3.4.5-20060117-1/gcc-java-3.4.5-20060117-1-src.tar.gz/download"
+    },
+    {
+      "sha256": "36E055325AE05F059AD414FDE24BD53B01B8633E9E415135A6DD5316B2E2EBFF",
+      "name": "gcc-g++-3.4.5-20060117-1-src.tar.gz",
+      "bytes": 3946638,
+      "url": "https://sourceforge.net/projects/mingw/files/MinGW/Base/gcc/Version3/Previous%20Release_%20gcc-3.4.5-20060117-1/gcc-g%2B%2B-3.4.5-20060117-1-src.tar.gz/download"
+    },
+    {
+      "sha256": "B017185419FB35C7CCB914064557F472F706895880843DED6C7889DB6B54EC27",
+      "name": "gcc-3.4.5-build.sh",
+      "bytes": 596,
+      "url": "https://sourceforge.net/projects/mingw/files/MinGW/Base/gcc/Version3/Previous%20Release_%20gcc-3.4.5-20060117-1/gcc-3.4.5-build.sh/download"
+    },
+    {
+      "sha256": "06E31E8C7019FBAA0DD58AEAFF97CDFE7238E67865B52DE5F53083E2E04ED33F",
+      "name": "libiconv-1.9.2-1-src.zip",
+      "bytes": 4638975,
+      "url": "https://sourceforge.net/projects/gnuwin32/files/libiconv/1.9.2-1/libiconv-1.9.2-1-src.zip/download"
+    }
+  ],
+  "pdftkOrigin": "https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/pdftk_server-2.02-win-setup.exe",
+  "ghostscriptBinaries": [
+    {
+      "sha256": "9B29D3B5128C6D53BB4E9EEE77E3919D05038CDFDD8E07697AF4D9C319F9D5AD",
+      "name": "gswin64c.exe"
+    },
+    {
+      "sha256": "A134ED0D3AF749BDAB93C66029180E676D36D9CC624C192EA287F73C891FB0AF",
+      "name": "gsdll64.dll"
+    }
+  ],
+  "pdftkVersion": "2.02",
+  "ghostscriptOrigin": "Instalação local da edição oficial AGPL; fontes e SHA512SUMS oficiais da mesma versão",
+  "pdftkBinaries": [
+    {
+      "sha256": "5E5CBE817ECC3CC1875369D81119472559C9624D55C7176852C8827750AFA00A",
+      "name": "pdftk.exe"
+    },
+    {
+      "sha256": "CB016E794D3311C71F21D87803E10A0E1133995F62A485EB37B321CD9B9E1087",
+      "name": "libiconv2.dll"
+    }
+  ],
+  "ghostscriptVersion": "10.08.0"
+}

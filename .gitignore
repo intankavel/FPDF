@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+.build/
+.vs/
+artifacts/
+*.user
+vendor/*
+!vendor/manifest.json
+.DS_Store

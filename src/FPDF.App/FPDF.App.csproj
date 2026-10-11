@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>FPDF</AssemblyName>
+    <StartupObject>FPDF.App.Program</StartupObject>
+    <Version>0.8.1</Version>
+    <ApplicationIcon>../../FPDF.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../FPDF.Core/FPDF.Core.csproj" /></ItemGroup>
+  <ItemGroup><Resource Include="../../FPDF.ico" Link="Assets/FPDF.ico" /></ItemGroup>
+</Project>
