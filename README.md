@@ -111,5 +111,3 @@ Os testes usam documentos sintéticos sem informações pessoais e verificam jun
 ## Próximas etapas
 
 Validação criptográfica de assinaturas, assinatura de código do executável e validação institucional para distribuição mais ampla.
-
-O REA não é necessário para estas operações documentadas. Poderá ser usado se uma investigação específica de comportamento exigir engenharia reversa.
