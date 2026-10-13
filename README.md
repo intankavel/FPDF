@@ -136,6 +136,5 @@ Os testes usam documentos sintéticos sem informações pessoais e verificam jun
 
 Validação criptográfica de assinaturas, assinatura de código do executável e validação institucional para distribuição mais ampla.
 
-O REA não é necessário para estas operações documentadas. Poderá ser usado se uma investigação específica de comportamento exigir engenharia reversa.
 
 As fontes dos componentes de terceiros desta versão estão no arquivo FPDF-0.9.0-fontes-terceiros.zip, disponível junto ao portátil em https://github.com/intankavel/FPDF/releases/tag/v0.9.0 . O ZIP do aplicativo mantém o código-fonte do FPDF e todos os avisos de licença. Para obter as fontes de bibliotecas e mecanismos, baixe também o ZIP de fontes e extraia-o ao lado de FPDF.exe; ele cria a pasta fontes-terceiros. Preserve o acesso às fontes correspondentes ao redistribuir.
