@@ -1,4 +1,9 @@
 <Window Icon="/FPDF;component/Assets/FPDF.ico" x:Class="FPDF.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:FPDF.App" Title="FPDF — Ferramentas para PDF" Width="1000" SizeToContent="Height" MinWidth="780" MinHeight="740" Background="#F3F6F9" FontFamily="Segoe UI" FontSize="14" Foreground="#18354A" WindowStartupLocation="CenterScreen" AllowDrop="True" Drop="FilesDropped" Closing="WindowClosing">
+  <Window.Resources>
+    <CollectionViewSource x:Key="GroupedOperations" Source="{x:Static local:OperationCatalog.All}">
+      <CollectionViewSource.GroupDescriptions><PropertyGroupDescription PropertyName="Category"/></CollectionViewSource.GroupDescriptions>
+    </CollectionViewSource>
+  </Window.Resources>
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
   <Grid Margin="24" MinHeight="720" Background="#F3F6F9">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -12,11 +17,27 @@
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid x:Name="OperationPanel"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions>
           <StackPanel Margin="0,0,20,0"><TextBlock Text="O que você quer fazer?" FontWeight="SemiBold" Margin="0,0,0,7"/>
-            <ComboBox x:Name="Operation" SelectedIndex="0" SelectionChanged="OperationChanged"><ComboBoxItem Content="Juntar PDFs"/><ComboBoxItem Content="Dividir por tamanho máximo"/><ComboBoxItem Content="Extrair páginas"/><ComboBoxItem Content="Dividir por intervalos"/><ComboBoxItem Content="Girar páginas"/><ComboBoxItem Content="Otimizar sem perda"/><ComboBoxItem Content="Comprimir PDF"/><ComboBoxItem Content="Comprimir e dividir por tamanho"/><ComboBoxItem Content="Imagens para PDF"/><ComboBoxItem Content="Adicionar marca-d’água"/><ComboBoxItem Content="Numerar páginas"/><ComboBoxItem Content="Visualizar e organizar páginas"/></ComboBox>
+            <ComboBox x:Name="Operation" ItemsSource="{Binding Source={StaticResource GroupedOperations}}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="0" SelectionChanged="OperationChanged" MaxDropDownHeight="650" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+              <ComboBox.GroupStyle>
+                <GroupStyle>
+                  <GroupStyle.HeaderTemplate>
+                    <DataTemplate>
+                      <Border Background="#EEF4F6" BorderBrush="#DCE4EC" BorderThickness="0,1,0,1" Padding="10,7" Margin="0,4,0,3">
+                        <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="#087E82"/>
+                      </Border>
+                    </DataTemplate>
+                  </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+              </ComboBox.GroupStyle>
+              <ComboBox.ItemContainerStyle>
+                <Style TargetType="ComboBoxItem"><Setter Property="Padding" Value="14,5"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style>
+              </ComboBox.ItemContainerStyle>
+            </ComboBox>
           </StackPanel>
-          <StackPanel x:Name="LimitPanel" Grid.Column="1" Visibility="Collapsed"><TextBlock Text="Tamanho máximo por parte (MB)" Margin="0,0,0,7"/><TextBox x:Name="Limit" Text="50" ToolTip="1 MB = 1.000.000 bytes. Você pode usar valores como 10 ou 2,5."/></StackPanel>
+          <StackPanel x:Name="LimitPanel" Grid.Column="1" Visibility="Collapsed"><TextBlock x:Name="LimitLabel" Text="Tamanho máximo por parte (MB)" Margin="0,0,0,7"/><TextBox x:Name="Limit" Text="50" ToolTip="1 MB = 1.000.000 bytes. Você pode usar valores como 10 ou 2,5."/></StackPanel>
           <StackPanel x:Name="SelectionPanel" Grid.Column="1" Visibility="Collapsed"><TextBlock x:Name="SelectionLabel" Text="Páginas (ex.: 1-3, 5, 8-fim)" Margin="0,0,0,7"/><TextBox x:Name="PageExpression" ToolTip="Use números e intervalos separados por vírgula. 'fim' indica a última página."/></StackPanel>
           <StackPanel x:Name="QualityPanel" Grid.Column="1" Visibility="Collapsed"><TextBlock Text="Qualidade das imagens" Margin="0,0,0,7"/><ComboBox x:Name="Quality" SelectedIndex="1"><ComboBoxItem Content="Maior qualidade (200 dpi)"/><ComboBoxItem Content="Equilíbrio (150 dpi)"/><ComboBoxItem Content="Menor tamanho (96 dpi)"/></ComboBox></StackPanel>
+          <StackPanel x:Name="OcrPanel" Grid.Column="1" Visibility="Collapsed"><TextBlock Text="Idioma do texto" Margin="0,0,0,7"/><ComboBox x:Name="OcrLanguage" SelectedIndex="0"><ComboBoxItem Content="Português"/><ComboBoxItem Content="Português e inglês"/><ComboBoxItem Content="Inglês"/></ComboBox></StackPanel>
           <StackPanel x:Name="ImageLayoutPanel" Grid.Column="1" Visibility="Collapsed"><TextBlock Text="Formato das páginas" Margin="0,0,0,7"/><ComboBox x:Name="ImageLayout" SelectedIndex="0"><ComboBoxItem Content="A4 — orientação automática"/><ComboBoxItem Content="A4 — retrato"/><ComboBoxItem Content="A4 — paisagem"/></ComboBox></StackPanel>
           <StackPanel x:Name="WatermarkTextPanel" Grid.Column="1" Visibility="Collapsed"><TextBlock Text="Texto da marca-d’água" Margin="0,0,0,7"/><TextBox x:Name="WatermarkText" Text="MINUTA" MaxLength="80"/></StackPanel>
           <StackPanel x:Name="NumberFormatPanel" Grid.Column="1" Visibility="Collapsed"><TextBlock Text="Formato da numeração" Margin="0,0,0,7"/><ComboBox x:Name="NumberFormat" SelectedIndex="2"><ComboBoxItem Content="1, 2, 3…"/><ComboBoxItem Content="Página 1"/><ComboBoxItem Content="Página 1 de 10"/></ComboBox></StackPanel>
@@ -51,7 +72,7 @@
       <TextBlock Text="Documentos assinados: alterações podem invalidar as assinaturas digitais." FontSize="12" Foreground="#78654A" Margin="0,10,0,0" TextWrapping="Wrap"/>
       <WrapPanel Margin="0,8,0,0"><Button x:Name="InspectButton" Content="Verificar assinaturas" Click="InspectSignatures"/><Button x:Name="DependenciesButton" Content="Verificar componentes" Click="ShowDependencies"/></WrapPanel>
       <TextBlock x:Name="SignatureInfo" Foreground="#78654A" TextWrapping="Wrap" FontSize="12"/>
-      <TextBlock Text="Protótipo 0.8.1 • Projeto independente, ainda sem homologação institucional" FontSize="11" Foreground="#738493" Margin="0,4,0,0"/>
+      <TextBlock Text="Protótipo 0.9.0 • Projeto independente, ainda sem homologação institucional" FontSize="11" Foreground="#738493" Margin="0,4,0,0"/>
     </StackPanel>
   </Grid>
   </ScrollViewer>

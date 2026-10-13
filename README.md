@@ -4,6 +4,18 @@ Protótipo independente de ferramentas PDF para Windows, pensado para preparar d
 
 Repositório do projeto: [intankavel/FPDF](https://github.com/intankavel/FPDF). Código aberto sob AGPL-3.0-only. Os pacotes portáteis e os arquivos de terceiros são gerados separadamente; binários e documentos de teste não fazem parte do histórico Git.
 
+## Versão 0.9.0
+
+Novidades desta versão:
+
+- Menu de ferramentas agrupado em Organizar páginas, Reduzir tamanho, Preparar para envio e Criar e identificar. Os títulos separam as ferramentas dentro do mesmo seletor.
+- Reconhecer texto (OCR) de um PDF por vez, com português como padrão, inglês opcional, progresso e cancelamento. Usa Tesseract e OCRmyPDF localmente; os componentes estão incluídos no portátil.
+- Tela de abertura com FPDF.jpg, encerrada assim que a janela principal estiver pronta, sem espera artificial.
+- Compressão em lote com resumo por arquivo, mantendo os resultados concluídos se o lote for cancelado.
+- Seleção de várias páginas para mover, excluir ou girar no organizador, com desfazer.
+- Pré-visualização com mais detalhes nos níveis de zoom de 150% e 200%.
+- **Comprimir até um limite de tamanho**: informe o máximo em MB por PDF. O aplicativo tenta 200, 150 e 96 dpi nessa ordem, sempre a partir do original, e para na primeira tentativa que atende ao limite. PDFs já dentro dele são copiados sem recompressão. Se nenhuma tentativa atender, o menor resultado disponível é salvo com aviso explícito de limite não atingido. Todas as páginas são mantidas; revise a legibilidade. Aceita um ou vários PDFs.
+
 ## Versão 0.8.1
 
 Inclui explicações de uso e pequenos infográficos em todas as doze operações, com exemplos do que acontece com os arquivos. Os desenhos distinguem extração (um PDF) de divisão por intervalos (vários PDFs). A interface permite rolagem em janelas menores.
@@ -33,9 +45,9 @@ Cada MB corresponde a 1.000.000 bytes, uma escolha conservadora em relação a l
 
 ## Executar
 
-Para distribuição, extraia `artifacts/releases/FPDF-0.8.1-win-x64.zip` e abra `FPDF.exe`. Não mova somente o executável: mantenha os arquivos de sua pasta juntos. As versões anteriores permanecem em suas pastas. A altura inicial acompanha o conteúdo da interface, dentro da área útil da tela; janelas menores continuam permitindo rolagem.
+Para distribuição, extraia `artifacts/releases/FPDF-0.9.0-win-x64.zip` e abra `FPDF.exe`. Não mova somente o executável: mantenha os arquivos de sua pasta juntos. As versões anteriores permanecem em suas pastas. A altura inicial acompanha o conteúdo da interface, dentro da área útil da tela; janelas menores continuam permitindo rolagem.
 
-O portátil inclui o .NET Desktop Runtime 9, PDFtk Server 2.02 e Ghostscript AGPL 10.08.0. O FPDF procura primeiro os mecanismos dentro de sua própria pasta. Os caminhos de recursos do Ghostscript são configurados a partir dela, permitindo mover a pasta para outro computador Windows de 64 bits. Instalações externas ainda podem ser selecionadas pela interface.
+O portátil inclui .NET Desktop Runtime 9, PDFtk Server 2.02, Ghostscript AGPL 10.08.0, Python 3.14.7, OCRmyPDF 17.13.0 e Tesseract 5.5.3. O FPDF procura primeiro os mecanismos dentro de sua própria pasta. Os caminhos de recursos do Ghostscript são configurados a partir dela, permitindo mover a pasta para outro computador Windows de 64 bits. Instalações externas ainda podem ser selecionadas pela interface.
 
 O portátil dispensa a instalação desses componentes. O botão **Verificar componentes** informa se os mecanismos locais foram encontrados. Fontes correspondentes e avisos acompanham o pacote. Valide com documentos reais e com a equipe responsável antes de adoção institucional. O executável não está assinado por um editor. Consulte `docs/LEIA-ME.txt`, `docs/THIRD-PARTY.md` e `docs/BUILD-THIRD-PARTY.md`.
 
@@ -65,6 +77,18 @@ Os originais são preservados. Modificar PDFs assinados pode invalidar assinatur
 ## Comprimir e dividir
 
 Adicione um PDF, escolha o limite em MB e o nível de qualidade. O FPDF comprime uma cópia temporária, divide essa cópia por páginas inteiras e verifica o tamanho de cada parte. A pasta final inclui um resumo com os tamanhos da compressão e das partes. Se uma página continuar maior que o limite, a operação não publica nenhuma parte. A resolução é reduzida apenas conforme o perfil escolhido; o FPDF não diminui a qualidade automaticamente para forçar o limite.
+
+## Reconhecer texto (OCR)
+
+Escolha **Criar e identificar → Reconhecer texto (OCR)**, adicione um PDF e selecione o idioma. Português é o padrão; português e inglês ou apenas inglês também estão disponíveis. O resultado é salvo com um novo nome. Reconhecimento e arquivos temporários ficam no computador. A operação adiciona uma camada de texto pesquisável, sem converter o PDF em Word e sem reduzir seu tamanho deliberadamente. As páginas são conferidas antes de salvar.
+
+Páginas que já contêm texto são ignoradas, inclusive páginas com texto e imagens simultaneamente. Se todas já tiverem texto, o resultado é uma cópia exata do original. Confira palavras, acentos e números; digitalizações ruins ou texto deitado podem prejudicar o reconhecimento. Corrija a orientação em Girar páginas antes do OCR. O resumo distingue páginas já pesquisáveis, páginas com texto reconhecido e páginas sem texto reconhecido (incluindo páginas em branco). Não encontrar texto não prova que a página esteja em branco.
+
+PDFs protegidos não são suportados. OCRmyPDF bloqueia alterações em documentos com assinaturas digitais ou determinadas estruturas de acessibilidade que ele não pode preservar. Cancelamento ou falha não publica resultado parcial. O tamanho pode aumentar; a camada pesquisável não representa validação de conteúdo nem garantia de acessibilidade completa.
+
+Para preparar o ambiente de desenvolvimento Windows, instale Python 3.11 ou superior e execute `scripts/setup-ocr-dev.ps1`. O script cria um ambiente isolado em `.build/ocr-runtime`, extrai o Tesseract em `.build/ocr-tesseract` e baixa os modelos de português e inglês. Esses arquivos não são adicionados ao Git. O FPDF identifica esse ambiente quando executado dentro da pasta do projeto. Consulte [a instalação oficial do OCRmyPDF](https://ocrmypdf.readthedocs.io/en/latest/installation.html#native-windows). OCRmyPDF usa MPL-2.0; Tesseract e seus modelos usam Apache-2.0. O portátil 0.9.0 inclui o runtime e as dependências de OCR, com fontes, licenças e avisos correspondentes.
+
+Teste a integração com `dotnet run --project tests/FPDF.SmokeTests -- --ocr-only`. Os documentos sintéticos exercitam tamanhos diferentes, recorte, rotação, texto existente, página em branco, idioma, proteção, cancelamento, alinhamento e igualdade da aparência renderizada.
 
 ## Imagens para PDF
 
@@ -113,3 +137,5 @@ Os testes usam documentos sintéticos sem informações pessoais e verificam jun
 Validação criptográfica de assinaturas, assinatura de código do executável e validação institucional para distribuição mais ampla.
 
 O REA não é necessário para estas operações documentadas. Poderá ser usado se uma investigação específica de comportamento exigir engenharia reversa.
+
+As fontes dos componentes de terceiros desta versão estão no arquivo FPDF-0.9.0-fontes-terceiros.zip, disponível junto ao portátil em https://github.com/intankavel/FPDF/releases/tag/v0.9.0 . O ZIP do aplicativo mantém o código-fonte do FPDF e todos os avisos de licença. Para obter as fontes de bibliotecas e mecanismos, baixe também o ZIP de fontes e extraia-o ao lado de FPDF.exe; ele cria a pasta fontes-terceiros. Preserve o acesso às fontes correspondentes ao redistribuir.

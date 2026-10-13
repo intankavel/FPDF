@@ -88,6 +88,18 @@ public sealed class OperationIllustration : FrameworkElement
                     Arrow(151); Text("PDF comprimido", 209, 0); Document(235, photo: true); Text("Qualidade escolhida", 209, 65);
                     Text("Imagens recomprimidas. Pode perder detalhes; o tamanho pode não diminuir.", 0, 86);
                     break;
+                case 13:
+                    Text("Digitalização", 0, 0); Document(22, photo: true); Arrow(151);
+                    Text("PDF pesquisável", 209, 0); Document(235, photo: true);
+                    Text("Texto como imagem", 0, 65); Text("Pesquisar e copiar texto", 209, 65);
+                    Text("Reconhecer texto, mantendo a aparência. Revise palavras e números.", 0, 86);
+                    break;
+                case 12:
+                    Text("PDF original", 0, 0); Document(22, photo: true); Arrow(151);
+                    Text("Tentar chegar ao limite", 209, 0); Document(235, photo: true);
+                    Text("Limite escolhido em MB", 0, 65); Text("Mesmo número de páginas", 209, 65);
+                    Text("Maior qualidade → equilíbrio → menor tamanho. Confira o limite no resultado.", 0, 86);
+                    break;
                 case 7:
                     Text("PDF original", 0, 0); Document(18, photo: true); Arrow(107);
                     Text("Comprimir", 159, 0); Document(169, photo: true); Arrow(260);

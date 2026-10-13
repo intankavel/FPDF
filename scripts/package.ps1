@@ -1,4 +1,4 @@
-param([string]$Version = '0.8.1', [string]$GhostscriptRoot = 'C:\Program Files\gs\gs10.08.0')
+param([string]$Version = '0.9.0', [string]$GhostscriptRoot = 'C:\Program Files\gs\gs10.08.0')
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw 'Use uma versão como 0.7.0.' }
@@ -60,23 +60,26 @@ $desktopRoot = Join-Path $nugetRoot "microsoft.windowsdesktop.app.runtime.win-x6
 Copy-Item -LiteralPath (Join-Path $runtimeRoot 'LICENSE.TXT') -Destination (Join-Path $licenseRoot 'dotnet-LICENSE.txt')
 Copy-Item -LiteralPath (Join-Path $runtimeRoot 'THIRD-PARTY-NOTICES.TXT') -Destination (Join-Path $licenseRoot 'dotnet-THIRD-PARTY-NOTICES.txt')
 Copy-Item -LiteralPath (Join-Path $desktopRoot 'LICENSE') -Destination (Join-Path $licenseRoot 'windowsdesktop-LICENSE.txt')
+& python (Join-Path $PSScriptRoot 'package-ocr.py') $packageRoot
+if ($LASTEXITCODE -ne 0) { throw 'Falha ao preparar o OCR portátil.' }
 $sourceRoot = Join-Path $packageRoot 'codigo-fonte'
 New-Item -ItemType Directory -Path $sourceRoot -Force | Out-Null
 foreach ($name in @('src', 'tests', 'scripts', 'docs')) {
     $base = Join-Path $projectRoot $name
-    foreach ($file in Get-ChildItem -LiteralPath $base -File -Recurse | Where-Object { $_.FullName -notmatch '[\\/](bin|obj)[\\/]' }) {
+    foreach ($file in Get-ChildItem -LiteralPath $base -File -Recurse | Where-Object { $_.FullName -notmatch '[\\/](bin|obj|__pycache__)[\\/]' }) {
         $relative = [IO.Path]::GetRelativePath($projectRoot, $file.FullName)
         $destination = Join-Path $sourceRoot $relative
         New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($destination)) -Force | Out-Null
         Copy-Item -LiteralPath $file.FullName -Destination $destination
     }
 }
-foreach ($name in @('FPDF.sln', 'global.json', 'NuGet.Config', 'README.md', 'CHANGELOG.md', 'LICENSE', 'FPDF.ico', '.gitignore')) {
+foreach ($name in @('FPDF.sln', 'global.json', 'NuGet.Config', 'README.md', 'CHANGELOG.md', 'LICENSE', 'FPDF.ico', 'FPDF.jpg', '.gitignore')) {
     Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $sourceRoot
 }
 New-Item -ItemType Directory -Path (Join-Path $sourceRoot 'vendor') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $vendorRoot 'manifest.json') -Destination (Join-Path $sourceRoot 'vendor')
 if (Get-ChildItem -LiteralPath $sourceRoot -Filter '*.pdf' -Recurse) { throw 'O código-fonte contém PDFs inesperados. Revise antes de distribuir.' }
-Compress-Archive -LiteralPath $packageRoot -DestinationPath $archive -CompressionLevel Optimal
+& python (Join-Path $PSScriptRoot 'archive-release.py') $packageRoot
+if ($LASTEXITCODE -ne 0) { throw 'Falha ao compactar os arquivos da versão.' }
 Get-FileHash -LiteralPath $archive -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $([IO.Path]::GetFileName($archive))" } | Set-Content -LiteralPath "$archive.sha256" -Encoding utf8
 Write-Output "Pacote gerado: $archive"

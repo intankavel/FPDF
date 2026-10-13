@@ -21,9 +21,11 @@ public partial class App : System.Windows.Application
                 bool LocalTool(string? path) => path is not null && path.StartsWith(AppContext.BaseDirectory, StringComparison.OrdinalIgnoreCase);
                 bool localPdftk = LocalTool(FPDF.Core.PdfTools.FindExecutable());
                 bool localGhostscript = LocalTool(FPDF.Core.PdfCompression.FindExecutable());
+                var ocr = FPDF.Core.OcrSettings.Find();
+                bool localOcr = ocr is not null && LocalTool(ocr.Python) && LocalTool(ocr.Tesseract);
                 bool icon = window.Icon is not null;
-                System.IO.File.WriteAllText(e.Args[1], System.Text.Json.JsonSerializer.Serialize(new { Runtime = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription, LocalRuntime = localRuntime, SourceIncluded = source, LicenseIncluded = license, InterfaceInitialized = true, LocalPdftk = localPdftk, LocalGhostscript = localGhostscript, ApplicationIcon = icon }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-                exit = localRuntime && source && license && localPdftk && localGhostscript && icon ? 0 : 1;
+                System.IO.File.WriteAllText(e.Args[1], System.Text.Json.JsonSerializer.Serialize(new { Runtime = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription, LocalRuntime = localRuntime, SourceIncluded = source, LicenseIncluded = license, InterfaceInitialized = true, LocalPdftk = localPdftk, LocalGhostscript = localGhostscript, LocalOcr = localOcr, ApplicationIcon = icon }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                exit = localRuntime && source && license && localPdftk && localGhostscript && localOcr && icon ? 0 : 1;
                 window.Close();
             }
             catch (Exception error) { System.IO.File.WriteAllText(e.Args[1], error.ToString()); }
@@ -31,6 +33,16 @@ public partial class App : System.Windows.Application
             return;
         }
         base.OnStartup(e);
-        new MainWindow().Show();
+        var splash = new StartupSplash();
+        splash.Show();
+        try
+        {
+            var window = new MainWindow();
+            MainWindow = window;
+            window.ContentRendered += (_, _) => { if (splash.IsVisible) splash.Close(); };
+            window.Closed += (_, _) => { if (splash.IsVisible) splash.Close(); };
+            window.Show();
+        }
+        catch { splash.Close(); throw; }
     }
 }

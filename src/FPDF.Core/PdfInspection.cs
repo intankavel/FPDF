@@ -15,6 +15,18 @@ public record PdfInspection(int Pages, SignatureDetection Signatures, int Signat
 
 public sealed partial class PdfTools
 {
+    public async Task OrganizePagesAsync(string input, string destination, IReadOnlyList<int> pages, IReadOnlyList<int> rotations, IProgress<string>? progress = null, CancellationToken cancellation = default)
+    {
+        if (pages.Count != rotations.Count || rotations.Any(r => r is not (0 or 90 or 180 or 270))) throw new ArgumentException("Giros de páginas inválidos.");
+        await WriteSingleAsync(destination, pages.Count, async output =>
+        {
+            string ordered = Path.Combine(Path.GetDirectoryName(output)!, "ordenado.pdf");
+            await ReorderPagesAsync(input, ordered, pages, progress, cancellation);
+            string expression = string.Join(",", rotations.Select((r,i) => r == 0 ? null : $"{i+1}:" + (r == 90 ? "D90" : r == 180 ? "180" : "E90")).Where(r => r is not null));
+            if (expression.Length == 0) File.Move(ordered, output);
+            else await RotateMixedAsync(ordered, output, expression, progress, cancellation);
+        }, cancellation);
+    }
     public async Task<PdfInspection> InspectAsync(string input, CancellationToken cancellation = default)
     {
         int pages = await GetPageCountAsync(input, cancellation);
@@ -49,14 +61,16 @@ public sealed partial class PdfTools
 
 public static class PdfPreview
 {
-    public static async Task RenderPageAsync(string ghostscript, string input, int page, string png, bool large = false, CancellationToken cancellation = default)
+    public static async Task RenderPageAsync(string ghostscript, string input, int page, string png, bool large = false, CancellationToken cancellation = default, int previewScale = 1)
     {
         if (page < 1) throw new ArgumentOutOfRangeException(nameof(page));
+        if (previewScale is < 1 or > 2) throw new ArgumentOutOfRangeException(nameof(previewScale));
+        string canvas = large ? $"-g{1000*previewScale}x{1300*previewScale}" : "-g240x312";
         // A fixed canvas caps memory even for unusually large PDF pages; PDF content is fit proportionally.
         string temporary = png + "." + Guid.NewGuid().ToString("N") + ".png";
         try
         {
-            await ExternalProcess.RunAsync(ghostscript, ["-dSAFER", "-dBATCH", "-dNOPAUSE", "-sDEVICE=png16m", "-dUseCropBox", "-dFIXEDMEDIA", "-dPDFFitPage", large ? "-g1000x1300" : "-g240x312", "-r72", "-dTextAlphaBits=4", "-dGraphicsAlphaBits=4", $"-dFirstPage={page}", $"-dLastPage={page}", "-sOutputFile=" + temporary, "-f", input], "Ghostscript", cancellation);
+            await ExternalProcess.RunAsync(ghostscript, ["-dSAFER", "-dBATCH", "-dNOPAUSE", "-sDEVICE=png16m", "-dUseCropBox", "-dFIXEDMEDIA", "-dPDFFitPage", canvas, "-r72", "-dTextAlphaBits=4", "-dGraphicsAlphaBits=4", $"-dFirstPage={page}", $"-dLastPage={page}", "-sOutputFile=" + temporary, "-f", input], "Ghostscript", cancellation);
             cancellation.ThrowIfCancellationRequested();
             File.Move(temporary, png, overwrite: true);
         }

@@ -1,5 +1,16 @@
 # Histórico
 
+## 0.9.0
+
+- Menu organizado em quatro categorias, preservando o seletor e os infográficos.
+- OCR local em português e inglês, com progresso, cancelamento e resumo por tipo de página. Python, OCRmyPDF e Tesseract incluídos no portátil.
+- Compressão em lote com resumo por arquivo e preservação dos resultados já concluídos em caso de cancelamento.
+- Compressão até um limite editável, tentando as três qualidades a partir do original e avisando quando o limite não for atingido.
+- Seleção de várias páginas para mover, excluir e girar no organizador, com desfazer.
+- Maior nitidez nas pré-visualizações em zoom de 150% e 200%.
+- Tela de abertura com FPDF.jpg, sem espera artificial.
+- Fontes, bibliotecas e licenças correspondentes dos novos componentes acompanham o pacote.
+
 ## 0.8.1
 
 - Janela inicial mais larga e altura ajustada automaticamente ao conteúdo, respeitando a área útil da tela.

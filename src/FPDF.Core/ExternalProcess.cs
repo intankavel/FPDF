@@ -4,7 +4,7 @@ namespace FPDF.Core;
 
 internal static class ExternalProcess
 {
-    public static async Task<string> RunAsync(string executable, IEnumerable<string> arguments, string engineName, CancellationToken cancellation)
+    public static async Task<string> RunAsync(string executable, IEnumerable<string> arguments, string engineName, CancellationToken cancellation, IProgress<string>? progress = null, IReadOnlyDictionary<string, string>? environment = null)
     {
         cancellation.ThrowIfCancellationRequested();
         if (!File.Exists(executable)) throw new FileNotFoundException($"{engineName} não encontrado. Localize seu executável.");
@@ -23,11 +23,20 @@ internal static class ExternalProcess
             }
         }
         foreach (var arg in args) info.ArgumentList.Add(arg);
+        if (environment is not null) foreach (var pair in environment) info.Environment[pair.Key] = pair.Value;
         using var process = new Process { StartInfo = info };
         process.Start();
         process.StandardInput.Close();
         var stdout = process.StandardOutput.ReadToEndAsync();
-        var stderr = process.StandardError.ReadToEndAsync();
+        async Task<string> ReadErrors()
+        {
+            var messages = new System.Text.StringBuilder();
+            while (await process.StandardError.ReadLineAsync() is string line)
+                if (line.StartsWith("FPDF:", StringComparison.Ordinal)) progress?.Report(line[5..]);
+                else if (messages.Length < 8_000) messages.AppendLine(line);
+            return messages.ToString();
+        }
+        var stderr = ReadErrors();
         using var registration = cancellation.Register(() =>
         {
             try { if (!process.HasExited) process.Kill(entireProcessTree: true); }

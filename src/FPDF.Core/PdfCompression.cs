@@ -1,9 +1,45 @@
 namespace FPDF.Core;
 
 public enum CompressionQuality { High, Balanced, Small }
+public record TargetCompressionResult(long OriginalBytes, long OutputBytes, long MaximumBytes, CompressionQuality? Quality)
+{
+    public bool TargetReached => OutputBytes <= MaximumBytes;
+    public string Message => !TargetReached ? "Limite não atingido; menor resultado disponível"
+        : Quality is null ? "Já estava dentro do limite; cópia do original"
+        : "Dentro do limite — " + QualityLabel(Quality.Value);
+    public static string QualityLabel(CompressionQuality quality) => quality switch
+    { CompressionQuality.High => "maior qualidade", CompressionQuality.Balanced => "equilíbrio", _ => "menor tamanho" };
+}
 
 public sealed class PdfCompression(string executable, PdfTools tools)
 {
+    internal Task<PdfInspection> InspectAsync(string input, CancellationToken cancellation) => tools.InspectAsync(input, cancellation);
+    public async Task<TargetCompressionResult> CompressToSizeAsync(string input, string destination, long maximumBytes, IProgress<string>? progress = null, CancellationToken cancellation = default)
+    {
+        if (maximumBytes < 1) throw new ArgumentOutOfRangeException(nameof(maximumBytes));
+        input = Path.GetFullPath(input);
+        int pages = await tools.GetPageCountAsync(input, cancellation);
+        long original = new FileInfo(input).Length, smallest = original;
+        CompressionQuality? chosen = null;
+        await tools.WriteSingleAsync(destination, pages, async output =>
+        {
+            string best = input;
+            if (original > maximumBytes)
+                foreach (var quality in new[] { CompressionQuality.High, CompressionQuality.Balanced, CompressionQuality.Small })
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    progress?.Report("Tentando " + TargetCompressionResult.QualityLabel(quality) + "…");
+                    string attempt = Path.Combine(Path.GetDirectoryName(output)!, $"tentativa-{quality}.pdf");
+                    var result = await CompressAsync(input, attempt, quality, cancellation: cancellation);
+                    if (result.OutputBytes < smallest)
+                    { best = attempt; smallest = result.OutputBytes; chosen = quality; }
+                    if (smallest <= maximumBytes) break;
+                }
+            cancellation.ThrowIfCancellationRequested();
+            File.Copy(best, output, overwrite: true);
+        }, cancellation);
+        return new(original, new FileInfo(destination).Length, maximumBytes, chosen);
+    }
     public async Task<SplitResult> CompressAndSplitAsync(string input, string outputParent, long maximumBytes, CompressionQuality quality, IProgress<string>? progress = null, CancellationToken cancellation = default)
     {
         if (maximumBytes < 1) throw new ArgumentOutOfRangeException(nameof(maximumBytes));

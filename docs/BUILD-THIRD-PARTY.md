@@ -30,6 +30,16 @@ A árvore oficial documenta parâmetros de arquitetura e localização das ferra
 
 ## FPDF e .NET
 
+## OCR portátil
+
+Execute `python scripts/prepare-ocr-vendor.py` para obter a base de pacotes MSYS2, o Tesseract e suas dependências, com arquivos completos de fontes, receitas PKGBUILD e patches. O manifesto registra versões, URLs e SHA-256, conferindo os binários contra o catálogo oficial. Para reconstruir uma biblioteca, extraia seu `.src.tar.zst` e use o PKGBUILD correspondente no ambiente MSYS2 MinGW64, conforme as instruções do MSYS2. As DLLs em `tools/tesseract` podem ser substituídas por versões recompiladas compatíveis. A recompilação bit a bit não foi realizada.
+
+Use Python 3.14 x64 para baixar as wheels exatas com `python -m pip download -r scripts/ocr-requirements.txt --only-binary=:all: --dest vendor/ocr/wheels`. Execute `python scripts/prepare-ocr-python.py` para obter as distribuições de fontes oficiais dessas mesmas versões. Copie a distribuição embutida oficial `python-3.14.7-embed-amd64.zip` para `vendor/ocr`, e as fontes `Python-3.14.7.tar.xz` para `vendor/ocr/python-sources`. Os modelos `por.traineddata` e `eng.traineddata` do tessdata_fast ficam em `vendor/ocr/models`, com a licença Apache-2.0 em `vendor/ocr/tessdata-LICENSE.txt`.
+
+`scripts/package-ocr.py` extrai o Python embutido e as wheels, configura caminhos relativos em `python314._pth` e copia os binários nativos e os modelos. Não copia o ambiente virtual de desenvolvimento, seus caminhos absolutos ou instaladores. O manifesto do runtime registra hashes dos arquivos efetivamente distribuídos. O pacote roda sem Python/Tesseract instalados no Windows. Para reproduzir versões exatas, use os nomes e hashes dos manifestos arquivados, pois o catálogo MSYS2 pode mudar.
+
 O código do aplicativo acompanha `codigo-fonte`, incluindo o ícone fornecido pelo autor do projeto. Abra `FPDF.sln` ou siga o README. O .NET é publicado com o programa, e seus avisos acompanham `licencas`. Para reproduzir o pacote, copie os arquivos de `fontes-terceiros` para `codigo-fonte/vendor/downloads`. Obtenha o instalador oficial do PDFtk indicado no manifesto e extraia-o com innoextract 1.9 (https://constexpr.org/innoextract/), usando `innoextract -d vendor/server-official pdftk_server-2.02-win-setup.exe`. O innoextract é uma ferramenta de preparação e não é distribuído no ZIP final.
 
 Execute `python scripts/collect-notices.py` para preparar `vendor/notices`. Configure a origem do runtime Ghostscript AGPL 10.08.0 pelo parâmetro `-GhostscriptRoot` e execute `pwsh -File scripts/package.ps1`. Os binários são conferidos pelos hashes antes do empacotamento. Os textos de licença não são substituídos por este documento.
+
+As fontes dos componentes de terceiros desta versão estão no arquivo FPDF-0.9.0-fontes-terceiros.zip, disponível junto ao portátil em https://github.com/intankavel/FPDF/releases/tag/v0.9.0 . O ZIP do aplicativo mantém o código-fonte do FPDF e todos os avisos de licença. Para obter as fontes de bibliotecas e mecanismos, baixe também o ZIP de fontes e extraia-o ao lado de FPDF.exe; ele cria a pasta fontes-terceiros. Preserve o acesso às fontes correspondentes ao redistribuir.

@@ -42,10 +42,25 @@ internal static class OrganizerChecks
         Invoke("Reset"); Assert(pages.Select(p => p.OriginalPage).SequenceEqual([1,2,3,4,5,6]), "Restaurar recupera a sequência original");
         Invoke("Undo"); Assert(pages.Select(p => p.OriginalPage).SequenceEqual([1,2,3,4,6,5]), "Restauração também pode ser desfeita");
         list.SelectedIndex = 0;
+        list.SelectedItems.Add(pages[1]);
+        Invoke("RotateSelected"); Assert(pages[0].Degrees==90 && pages[1].Degrees==90 && pages[2].Degrees==0,"Giro aplica-se às páginas marcadas");
+        Invoke("Undo"); Assert(pages.All(p=>p.Degrees==0),"Desfazer recupera orientação das páginas");
+        list.SelectedItems.Clear(); list.SelectedItems.Add(pages[0]); list.SelectedItems.Add(pages[1]);
+        Invoke("MoveNext"); Assert(pages.Select(p=>p.OriginalPage).SequenceEqual([3,1,2,4,6,5]),"Duas páginas movem-se juntas mantendo ordem");
+        Invoke("DeletePage"); Assert(pages.Select(p=>p.OriginalPage).SequenceEqual([3,4,6,5]),"Exclusão em grupo remove apenas páginas marcadas");
+        Invoke("Undo"); Invoke("Undo");
+        list.SelectedItems.Clear(); foreach(var page in pages) list.SelectedItems.Add(page);
+        Invoke("DeletePage"); Assert(pages.Count==6,"Exclusão de todas as páginas é bloqueada");
+        list.SelectedItems.Clear(); list.SelectedIndex=0;
+        type.GetMethod("MoveGroup",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,[new PageTile[]{pages[0],pages[1]},pages[2]]);
+        Assert(pages.Select(p=>p.OriginalPage).SequenceEqual([3,1,2,4,6,5]),"Arraste avança grupo para a posição escolhida");
+        Invoke("Undo"); list.SelectedItems.Clear(); list.SelectedIndex=0;
         Program.Render(window, 1060, 780, Path.Combine(directory, "organizador-paginas.png"));
         Program.Render(window, 810, 590, Path.Combine(directory, "organizador-minimo.png"));
         window.Close(); Assert(!Directory.Exists(work), "Fechar organizador remove cópias temporárias");
         var dependencies = new DependenciesWindow(); Program.Render(dependencies, 620, 440, Path.Combine(directory, "dependencias.png")); dependencies.Close();
+        var batchWindow = new BatchResultsWindow(new BatchCompressionResult(root,[new("documento A.pdf","a.pdf",2_000_000,1_200_000,"Comprimido"),new("documento B.pdf","b.pdf",300_000,300_000,"Sem redução; cópia do original"),new("documento C.pdf",null,500_000,null,"Falha: PDF protegido ou danificado")],false));
+        Program.Render(batchWindow,810,480,Path.Combine(directory,"resultado-lote.png")); batchWindow.Close();
         CheckLoading();
         void Invoke(string name) => type.GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(window, [window, new RoutedEventArgs()]);
         void CheckLoading()
@@ -74,6 +89,11 @@ internal static class OrganizerChecks
                 Assert(((System.Windows.Controls.Image)actual.FindName("LargePreview")).Source is BitmapSource bitmap && bitmap.PixelWidth == 1000, "Página ampliada usa imagem de maior resolução");
                 ((ComboBox)actual.FindName("Zoom")).SelectedIndex = 2;
                 Assert(((System.Windows.Controls.Image)actual.FindName("LargePreview")).Width == 1500, "Zoom de 150% amplia a página");
+                frame = new DispatcherFrame(); finished=false; deadline=DateTime.UtcNow.AddSeconds(45); Dispatcher.PushFrame(frame);
+                Assert(finished && ((System.Windows.Controls.Image)actual.FindName("LargePreview")).Source is BitmapSource sharp && sharp.PixelWidth==2000 && sharp.PixelHeight==2600,"Zoom carrega nova renderização com mais detalhes");
+                Assert(((System.Windows.Controls.Image)actual.FindName("LargePreview")).Width==1500,"Melhorar nitidez mantém o tamanho do zoom");
+                ((ComboBox)actual.FindName("Zoom")).SelectedIndex=3;
+                Assert(((System.Windows.Controls.Image)actual.FindName("LargePreview")).Width==2000,"Zoom de 200% reutiliza a imagem nítida");
                 ((ComboBox)actual.FindName("Zoom")).SelectedIndex = 0;
                 Program.Render(actual, 1060, 780, Path.Combine(directory, "organizador-carregado.png"));
                 Assert(((System.Windows.Controls.Image)actual.FindName("LargePreview")).Width > 300, "Ajustar à janela aproveita a área de visualização");

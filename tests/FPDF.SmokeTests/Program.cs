@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using FPDF.Core;
 
-try { await RunTests(); }
+try { if (!args.Contains("--ocr-only")) await RunTests(); if (args.Contains("--ocr") || args.Contains("--ocr-only")) await OcrChecks.Run(); }
 catch (Exception error) { Console.Error.WriteLine(error); Environment.ExitCode = 1; }
 
 static async Task RunTests()
@@ -118,6 +118,31 @@ foreach (var quality in Enum.GetValues<CompressionQuality>())
     Assert(File.ReadAllText(textPath).Contains("SCAN-TEXT"), "Compressão preserva texto selecionável");
 }
 Assert(imageHash.SequenceEqual(SHA256.HashData(File.ReadAllBytes(imagePdf))), "Compressão preserva o original");
+var targetCopy = Path.Combine(root, "alvo-copia.pdf");
+var copiedTarget = await compression.CompressToSizeAsync(imagePdf, targetCopy, new FileInfo(imagePdf).Length);
+Assert(copiedTarget.TargetReached && copiedTarget.Quality is null && imageHash.SequenceEqual(SHA256.HashData(File.ReadAllBytes(targetCopy))), "PDF já no limite é copiado sem recompressão");
+var targetHigh = await compression.CompressToSizeAsync(imagePdf, Path.Combine(root, "alvo-alta.pdf"), new FileInfo(imagePdf).Length - 1);
+Assert(targetHigh.TargetReached && targetHigh.Quality == CompressionQuality.High, "Compressão por limite para na maior qualidade que atende ao tamanho");
+long highBytes = new FileInfo(Path.Combine(root, "comprimido-High.pdf")).Length;
+long balancedBytes = new FileInfo(Path.Combine(root, "comprimido-Balanced.pdf")).Length;
+long smallBytes = new FileInfo(Path.Combine(root, "comprimido-Small.pdf")).Length;
+var targetBalanced = await compression.CompressToSizeAsync(imagePdf, Path.Combine(root, "alvo-equilibrio.pdf"), (highBytes + balancedBytes) / 2);
+Assert(targetBalanced.TargetReached && targetBalanced.Quality == CompressionQuality.Balanced, "Limite menor avança para equilíbrio e para ao atendê-lo");
+var targetSmall = await compression.CompressToSizeAsync(imagePdf, Path.Combine(root, "alvo-menor.pdf"), (balancedBytes + smallBytes) / 2);
+Assert(targetSmall.TargetReached && targetSmall.Quality == CompressionQuality.Small, "Limite mais restrito utiliza a terceira qualidade quando necessário");
+var unreachablePath = Path.Combine(root, "alvo-impossivel.pdf");
+var unreachable = await compression.CompressToSizeAsync(imagePdf, unreachablePath, 10);
+Assert(!unreachable.TargetReached && unreachable.OutputBytes <= unreachable.OriginalBytes && await tools.GetPageCountAsync(unreachablePath) == 1, "Limite impossível é informado e menor resultado mantém páginas");
+await ExpectFailure<IOException>(() => compression.CompressToSizeAsync(imagePdf, targetCopy, 10), "Compressão por limite não sobrescreve resultados existentes");
+using (var targetCancellation = new CancellationTokenSource())
+{
+    string canceledPath = Path.Combine(root, "alvo-cancelado.pdf");
+    await ExpectFailure<OperationCanceledException>(() => compression.CompressToSizeAsync(imagePdf, canceledPath, 10, new CancelProgress(targetCancellation), targetCancellation.Token), "Cancelamento interrompe tentativas de tamanho");
+    Assert(!File.Exists(canceledPath), "Cancelamento não publica PDF parcial");
+    Assert(!Directory.GetDirectories(root, ".fpdf-*").Any(), "Cancelamento de compressão por limite remove tentativas temporárias");
+}
+var targetBatch = await PdfBatchCompression.RunAsync(compression, [imagePdf], root, CompressionQuality.High, maximumBytes: 10);
+Assert(targetBatch.Items[0].Output is not null && targetBatch.Items[0].Message.Contains("Limite não atingido") && File.ReadAllText(Path.Combine(targetBatch.Directory, "resumo.txt")).Contains("10 bytes"), "Lote informa limite não atingido e registra o limite no resumo");
 var lowDpi = Path.Combine(root, "jpeg-baixa-resolucao.pdf");
 await Run(ghostscript, ["-dSAFER", "-dBATCH", "-dNOPAUSE", "-sDEVICE=pdfwrite", "-dDownsampleColorImages=true", "-dColorImageResolution=72", "-dColorImageDownsampleThreshold=1.0", "-dAutoFilterColorImages=false", "-dColorImageFilter=/DCTEncode", "-sOutputFile=" + lowDpi, "-c", "<< /ColorImageDict << /QFactor 0.05 >> >> setdistillerparams", "-f", imagePdf]);
 Assert(Encoding.ASCII.GetString(File.ReadAllBytes(lowDpi)).Contains("/DCTDecode"), "Fixture contém imagem JPEG abaixo do limite de resolução");
@@ -204,6 +229,19 @@ var thumbnail = Path.Combine(root, "miniatura.png");
 await PdfPreview.RenderPageAsync(ghostscript, mixed, 1, thumbnail);
 Assert(File.Exists(thumbnail) && new FileInfo(thumbnail).Length > 100, "Pré-visualização de página girada gera uma imagem local");
 await ExpectFailure<OperationCanceledException>(() => PdfPreview.RenderPageAsync(ghostscript, first, 1, Path.Combine(root, "preview-cancelado.png"), cancellation: cancellation.Token), "Pré-visualização permite cancelamento");
+var batch = await PdfBatchCompression.RunAsync(compression, [tiny, corrupt, tiny], root, CompressionQuality.Balanced);
+Assert(batch.Items.Count == 3 && batch.Items.Count(i=>i.Output is not null)==2 && batch.Items[1].Output is null, "Lote continua após PDF inválido e gera resultados de cada arquivo");
+Assert(batch.Items[0].Output != batch.Items[2].Output && File.Exists(Path.Combine(batch.Directory,"resumo.txt")), "Lote evita nomes duplicados e grava resumo");
+using var batchCancellation = new CancellationTokenSource();
+var interrupted = await PdfBatchCompression.RunAsync(compression, [tiny, tiny], root, CompressionQuality.Balanced, new CancelProgress(batchCancellation), batchCancellation.Token);
+Assert(interrupted.Canceled && interrupted.Items.All(i=>i.Output is null) && !Directory.GetDirectories(interrupted.Directory,".fpdf-*").Any(), "Cancelar lote registra não processados e remove temporários");
+var edit = Path.Combine(root,"editado.pdf");
+using var partialCancellation = new CancellationTokenSource();
+var partialBatch = await PdfBatchCompression.RunAsync(compression, [tiny,tiny,tiny], root, CompressionQuality.Balanced, new CancelAfterOneFileProgress(partialCancellation), partialCancellation.Token);
+Assert(partialBatch.Canceled && partialBatch.Items.Count(i=>i.Output is not null)==1 && File.Exists(partialBatch.Items[0].Output),"Cancelar lote preserva PDFs concluídos e informa os demais");
+await tools.OrganizePagesAsync(first,edit,[6,2,4],[90,270,180]);
+Assert(await tools.GetPageCountAsync(edit)==3 && Rotations(await Run(engine,[edit,"dump_data"])).SequenceEqual([90,270,180]), "Organizador grava ordem, exclusão e giros em conjunto");
+await ExpectFailure<ArgumentException>(()=>tools.OrganizePagesAsync(first,Path.Combine(root,"giro-edicao-invalido.pdf"),[1],[45]),"Organizador rejeita giro inválido");
 var combined = await compression.CompressAndSplitAsync(merged, root, 50_000, CompressionQuality.Balanced);
 Assert(combined.Parts.Sum(p => p.LastPage - p.FirstPage + 1) == 8 && combined.Parts.All(p => new FileInfo(Path.Combine(combined.Directory, p.Name)).Length <= 50_000), "Compressão seguida de divisão preserva páginas e respeita o limite");
 Assert(File.ReadAllText(Path.Combine(combined.Directory, "resumo.txt")).Contains("Compressão:"), "Operação combinada registra os tamanhos no resumo");
@@ -311,4 +349,9 @@ static void WriteImagePdf(string path)
 sealed class CancelProgress(CancellationTokenSource cancellation) : IProgress<string>
 {
     public void Report(string value) => cancellation.Cancel();
+}
+sealed class CancelAfterOneFileProgress(CancellationTokenSource cancellation) : IProgress<string>
+{
+    private int count;
+    public void Report(string value) { if (++count == 2) cancellation.Cancel(); }
 }

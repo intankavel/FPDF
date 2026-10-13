@@ -1,4 +1,4 @@
-FPDF 0.8.1 — Ferramentas para PDF — Portátil completo
+FPDF 0.9.0 — Ferramentas para PDF — Portátil completo
 
 COMO COMEÇAR
 1. Extraia todo o ZIP para uma pasta, por exemplo Documentos\FPDF.
@@ -6,7 +6,7 @@ COMO COMEÇAR
 3. Selecione a ferramenta desejada e adicione os arquivos.
 4. Salve o resultado com um novo nome ou em uma nova pasta.
 
-.NET, PDFtk Server e Ghostscript AGPL estão incluídos no pacote de Windows
+.NET, PDFtk Server, Ghostscript AGPL e OCR estão incluídos no pacote de Windows
 de 64 bits. Não é necessário instalar esses componentes nem o Visual Studio.
 O FPDF usa primeiro os mecanismos da sua própria pasta. Mantenha a pasta tools
 junto ao executável. Não execute o programa diretamente de dentro do ZIP.
@@ -22,6 +22,13 @@ Restaurar original recupera todas as páginas e a ordem original.
 Clique em Salvar novo PDF e escolha um nome que ainda não exista.
 As primeiras 20 miniaturas são carregadas automaticamente; carregue mais conforme
 necessário. Esta versão permite organizar até 5.000 páginas por documento.
+
+RECONHECER TEXTO (OCR)
+Escolha Criar e identificar > Reconhecer texto (OCR), adicione um PDF e selecione
+o idioma. Português é o padrão. O resultado permite pesquisar e copiar texto.
+Páginas que já têm texto são preservadas. Revise palavras e números reconhecidos.
+Se o texto estiver deitado, corrija antes em Girar páginas. OCR pode aumentar
+o arquivo. O processamento é local e pode ser cancelado sem salvar PDF parcial.
 
 ASSINATURAS DIGITAIS
 Verificar assinaturas identifica campos de assinatura no PDF. A organização
@@ -55,3 +62,5 @@ ao redistribuir o pacote completo.
 Sites oficiais:
 https://www.pdflabs.com/tools/pdftk-server/
 https://ghostscript.com/releases/gsdnld.html
+
+As fontes dos componentes de terceiros desta versão estão no arquivo FPDF-0.9.0-fontes-terceiros.zip, disponível junto ao portátil em https://github.com/intankavel/FPDF/releases/tag/v0.9.0 . O ZIP do aplicativo mantém o código-fonte do FPDF e todos os avisos de licença. Para obter as fontes de bibliotecas e mecanismos, baixe também o ZIP de fontes e extraia-o ao lado de FPDF.exe; ele cria a pasta fontes-terceiros. Preserve o acesso às fontes correspondentes ao redistribuir.
